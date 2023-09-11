@@ -10,8 +10,8 @@
 
 //! Creation and destruction of sandboxes.
 
-use platform::process::{self, Process};
-use profile::Profile;
+use crate::platform::process::{self, Process};
+use crate::profile::Profile;
 
 use std::collections::HashMap;
 use std::convert::AsRef;
@@ -19,7 +19,7 @@ use std::env;
 use std::ffi::{CString, OsStr};
 use std::io;
 
-pub use platform::{ChildSandbox, Sandbox};
+pub use crate::platform::{ChildSandbox, Sandbox};
 
 /// All platform-specific sandboxes implement this trait.
 ///
@@ -76,7 +76,7 @@ impl Command {
 
     /// Constructs a new `Command` for launching the current executable.
     pub fn me() -> io::Result<Command> {
-        Ok(Command::new(try!(env::current_exe())))
+        Ok(Command::new(env::current_exe()?))
     }
 
     /// Adds an argument to pass to the program.

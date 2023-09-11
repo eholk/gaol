@@ -16,7 +16,7 @@
 
 #![allow(non_upper_case_globals, unused_imports)]
 
-use profile::{Operation, Profile};
+use crate::profile::{Operation, Profile};
 
 use libc::{self, CLONE_CHILD_CLEARTID, CLONE_FILES, CLONE_FS,
            CLONE_PARENT_SETTID, CLONE_SETTLS, CLONE_SIGHAND, CLONE_SYSVSEM,

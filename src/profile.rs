@@ -10,7 +10,7 @@
 
 //! Sandbox profiles—lists of permitted operations.
 
-use platform;
+use crate::platform;
 
 use std::path::PathBuf;
 
