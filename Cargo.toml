@@ -7,10 +7,6 @@ documentation = "https://docs.rs/gaol"
 repository = "https://github.com/servo/gaol"
 description = "OS-level application sandboxing library"
 
-[lib]
-name = "gaol"
-path = "lib.rs"
-
 [dependencies]
 libc = "0.2"
 log = "0.4"
