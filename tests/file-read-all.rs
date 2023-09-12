@@ -52,6 +52,12 @@ fn prohibition_test() -> eyre::Result<()> {
 }
 
 pub fn main() -> eyre::Result<()> {
+    #[cfg(windows)]
+    {
+        println!("This test is not yet supported on Windows.");
+        return Ok(());
+    }
+
     tracing_subscriber::registry()
         .with(fmt::layer())
         .with(EnvFilter::from_default_env())

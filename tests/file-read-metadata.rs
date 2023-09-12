@@ -21,16 +21,16 @@ use std::path::PathBuf;
 // A conservative overapproximation of `PATH_MAX` on all platforms.
 const PATH_MAX: usize = 4096;
 
-fn allowance_profile(path: &PathBuf) -> Result<Profile, ()> {
-    Profile::new(vec![Operation::FileReadMetadata(PathPattern::Literal(
-        path.clone(),
-    ))])
+fn allowance_profile(path: &PathBuf) -> eyre::Result<Profile> {
+    Ok(Profile::new(vec![Operation::FileReadMetadata(
+        PathPattern::Literal(path.clone()),
+    )])?)
 }
 
-fn prohibition_profile() -> Result<Profile, ()> {
-    Profile::new(vec![Operation::FileReadMetadata(PathPattern::Subpath(
-        PathBuf::from("/bogus"),
-    ))])
+fn prohibition_profile() -> eyre::Result<Profile> {
+    Ok(Profile::new(vec![Operation::FileReadMetadata(
+        PathPattern::Subpath(PathBuf::from("/bogus")),
+    )])?)
 }
 
 fn allowance_test() {
@@ -52,6 +52,12 @@ fn prohibition_test() {
 }
 
 pub fn main() {
+    #[cfg(windows)]
+    {
+        println!("This test is not yet supported on Windows.");
+        return;
+    }
+
     match env::args().skip(1).next() {
         Some(ref arg) if arg == "allowance_test" => return allowance_test(),
         Some(ref arg) if arg == "prohibition_test" => return prohibition_test(),

@@ -29,6 +29,12 @@ fn prohibition_test() {
 }
 
 pub fn main() {
+    #[cfg(windows)]
+    {
+        println!("This test is not yet supported on Windows.");
+        return;
+    }
+
     match env::args().skip(1).next() {
         Some(ref arg) if arg == "allowance_test" => return allowance_test(),
         Some(ref arg) if arg == "prohibition_test" => return prohibition_test(),
