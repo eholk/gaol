@@ -12,20 +12,9 @@ pub struct Operation;
 
 impl OperationSupport for profile::Operation {
     fn support(&self) -> OperationSupportLevel {
-        match *self {
-            profile::Operation::FileReadAll(_)
-            | profile::Operation::NetworkOutbound(AddressPattern::All) => {
-                OperationSupportLevel::CanBeAllowed
-            }
-            profile::Operation::FileReadMetadata(_)
-            | profile::Operation::NetworkOutbound(AddressPattern::Tcp(_))
-            | profile::Operation::NetworkOutbound(AddressPattern::LocalSocket(_)) => {
-                OperationSupportLevel::CannotBeAllowedPrecisely
-            }
-            profile::Operation::SystemInfoRead | profile::Operation::PlatformSpecific(_) => {
-                OperationSupportLevel::NeverAllowed
-            }
-        }
+        // Say everything is always allowed because we have not implemented any
+        // Windows sandboxing.
+        OperationSupportLevel::AlwaysAllowed
     }
 }
 pub struct ChildSandbox {

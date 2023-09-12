@@ -66,6 +66,7 @@ pub fn main() -> eyre::Result<()> {
     // Need to use `realpath` here for Mac OS X, because the temporary directory is usually a
     // symlink.
     let mut temp_path = env::temp_dir();
+    #[cfg(not(windows))]
     unsafe {
         let c_temp_path = CString::new(temp_path.as_os_str().to_str().unwrap().as_bytes())?;
         let mut new_temp_path = [0u8; PATH_MAX];
@@ -112,6 +113,7 @@ pub fn main() -> eyre::Result<()> {
     Ok(())
 }
 
+#[cfg(not(windows))]
 extern "C" {
     fn realpath(file_name: *const c_char, resolved_name: *mut c_char) -> *mut c_char;
 }
