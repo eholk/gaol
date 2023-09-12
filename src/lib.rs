@@ -10,23 +10,4 @@
 
 pub mod profile;
 pub mod sandbox;
-
-pub mod platform {
-    #[cfg(any(target_os="android", target_os="linux"))]
-    pub use linux::{ChildSandbox, Operation, Sandbox};
-    #[cfg(target_os="macos")]
-    pub use macos::{ChildSandbox, Operation, Sandbox};
-    #[cfg(target_os="freebsd")]
-    pub use freebsd::{ChildSandbox, Operation, Sandbox};
-    #[cfg(any(target_os="android", target_os="linux", target_os="macos", target_os="freebsd"))]
-    pub use unix::process::{self, Process};
-
-    #[cfg(any(target_os="android", target_os="linux"))]
-    pub mod linux;
-    #[cfg(target_os="macos")]
-    pub mod macos;
-    #[cfg(target_os="freebsd")]
-    pub mod freebsd;
-    #[cfg(any(target_os="android", target_os="linux", target_os="macos", target_os="freebsd"))]
-    pub mod unix;
-}
+pub mod platform;

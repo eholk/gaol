@@ -2,7 +2,7 @@
 // http://creativecommons.org/publicdomain/zero/1.0/
 
 use tracing::debug;
-use tracing_subscriber::{EnvFilter, fmt, prelude::*};
+use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 use gaol::profile::{Operation, PathPattern, Profile};
 use gaol::sandbox::{ChildSandbox, ChildSandboxMethods, Command, Sandbox, SandboxMethods};
@@ -13,6 +13,7 @@ use std::env;
 use std::ffi::{CString, OsStr};
 use std::fs::File;
 use std::io::Write;
+#[cfg(not(windows))]
 use std::os::unix::prelude::OsStrExt;
 use std::path::PathBuf;
 
@@ -73,7 +74,10 @@ pub fn main() -> eyre::Result<()> {
             new_temp_path.as_mut_ptr() as *mut c_char,
         );
         let pos = new_temp_path.iter().position(|&x| x == 0).unwrap();
-        temp_path = PathBuf::from(OsStr::from_bytes(&new_temp_path[..pos]));
+        #[cfg(not(windows))]
+        {
+            temp_path = PathBuf::from(OsStr::from_bytes(&new_temp_path[..pos]));
+        }
     }
 
     let mut rng = rand::thread_rng();
