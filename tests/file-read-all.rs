@@ -20,24 +20,22 @@ use std::path::PathBuf;
 // A conservative overapproximation of `PATH_MAX` on all platforms.
 const PATH_MAX: usize = 4096;
 
-fn allowance_profile(path: &PathBuf) -> Profile {
-    Profile::new(vec![Operation::FileReadAll(PathPattern::Literal(
-        path.clone(),
-    ))])
-    .unwrap()
+fn allowance_profile(path: &PathBuf) -> eyre::Result<Profile> {
+    Ok(Profile::new(vec![Operation::FileReadAll(
+        PathPattern::Literal(path.clone()),
+    )])?)
 }
 
-fn prohibition_profile() -> Profile {
-    Profile::new(vec![Operation::FileReadAll(PathPattern::Subpath(
-        PathBuf::from("/bogus"),
-    ))])
-    .unwrap()
+fn prohibition_profile() -> eyre::Result<Profile> {
+    Ok(Profile::new(vec![Operation::FileReadAll(
+        PathPattern::Subpath(PathBuf::from("/bogus")),
+    )])?)
 }
 
 fn allowance_test() -> eyre::Result<()> {
     debug!("allowance_test");
     let path = PathBuf::from(env::var("GAOL_TEMP_FILE")?);
-    ChildSandbox::new(allowance_profile(&path))
+    ChildSandbox::new(allowance_profile(&path)?)
         .activate()
         .unwrap();
     drop(File::open(&path)?);
@@ -46,7 +44,9 @@ fn allowance_test() -> eyre::Result<()> {
 
 fn prohibition_test() -> eyre::Result<()> {
     let path = PathBuf::from(env::var("GAOL_TEMP_FILE")?);
-    ChildSandbox::new(prohibition_profile()).activate().unwrap();
+    ChildSandbox::new(prohibition_profile()?)
+        .activate()
+        .unwrap();
     drop(File::open(&path)?);
     Ok(())
 }
@@ -56,6 +56,8 @@ pub fn main() -> eyre::Result<()> {
         .with(fmt::layer())
         .with(EnvFilter::from_default_env())
         .init();
+
+    color_eyre::install()?;
 
     match env::args().skip(1).next() {
         Some(ref arg) if arg == "allowance_test" => return allowance_test(),
@@ -90,7 +92,7 @@ pub fn main() -> eyre::Result<()> {
     temp_path.push(format!("gaoltest.{}", suffix));
     File::create(&temp_path)?.write_all(b"super secret\n")?;
 
-    let allowance_status = Sandbox::new(allowance_profile(&temp_path))
+    let allowance_status = Sandbox::new(allowance_profile(&temp_path)?)
         .start(
             &mut Command::me()?
                 .arg("allowance_test")
@@ -101,7 +103,7 @@ pub fn main() -> eyre::Result<()> {
     debug!("child process exited with {allowance_status:?}");
     assert!(allowance_status.success());
 
-    let prohibition_status = Sandbox::new(prohibition_profile())
+    let prohibition_status = Sandbox::new(prohibition_profile()?)
         .start(
             Command::me()?
                 .arg("prohibition_test")

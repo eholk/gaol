@@ -10,11 +10,12 @@
 
 //! Sandbox profiles—lists of permitted operations.
 
+use thiserror::Error;
 use tracing::debug;
 
 use crate::platform;
 
-use std::path::PathBuf;
+use std::{error, path::PathBuf};
 
 /// A sandbox profile, which specifies the set of operations that this process is allowed to
 /// perform. Operations not in the list are implicitly prohibited.
@@ -129,27 +130,29 @@ impl Profile {
     /// be allowed and modify the set of allowed operations as necessary. We are deliberately
     /// strict here to reduce the probability of applications accidentally allowing operations due
     /// to platform limitations.
-    pub fn new(allowed_operations: Vec<Operation>) -> Result<Profile,()> {
-        if allowed_operations.iter().all(|operation| {
-            debug!("{:?}: {:?}", operation, operation.support());
+    pub fn new(allowed_operations: Vec<Operation>) -> Result<Profile, ProfileError> {
+        for operation in allowed_operations.iter() {
             match operation.support() {
-                OperationSupportLevel::NeverAllowed | OperationSupportLevel::CanBeAllowed => true,
-                OperationSupportLevel::CannotBeAllowedPrecisely |
-                OperationSupportLevel::AlwaysAllowed => false,
+                OperationSupportLevel::NeverAllowed | OperationSupportLevel::CanBeAllowed => (),
+                OperationSupportLevel::CannotBeAllowedPrecisely
+                | OperationSupportLevel::AlwaysAllowed => {
+                    return Err(ProfileError::CannotRestrictOperation(operation.clone()))
+                }
             }
-        }) {
-            Ok(Profile {
-                allowed_operations: allowed_operations,
-            })
-        } else {
-            Err(())
         }
+        Ok(Profile { allowed_operations })
     }
 
     /// Returns the list of allowed operations.
     pub fn allowed_operations(&self) -> &[Operation] {
         self.allowed_operations.as_slice()
     }
+}
+
+#[derive(Debug, Error)]
+pub enum ProfileError {
+    #[error("cannot restrict operation: {0:?}")]
+    CannotRestrictOperation(Operation),
 }
 
 /// How precisely an operation can be allowed on this platform.
