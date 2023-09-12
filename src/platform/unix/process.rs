@@ -12,6 +12,7 @@
 
 use crate::sandbox::Command;
 
+use libc::WIFSIGNALED;
 use libc::{execve, fork, pid_t, waitpid, WEXITSTATUS, WIFEXITED, WTERMSIG};
 use std::ffi::CString;
 use std::io;
@@ -79,12 +80,15 @@ impl Process {
 
         if WIFEXITED(stat) {
             Ok(ExitStatus::Code(WEXITSTATUS(stat) as i32))
-        } else {
+        } else if WIFSIGNALED(stat) {
             Ok(ExitStatus::Signal(WTERMSIG(stat) as i32))
+        } else {
+            panic!("unexpected exit status: {}", stat);
         }
     }
 }
 
+#[derive(Debug)]
 pub enum ExitStatus {
     Code(i32),
     Signal(i32),

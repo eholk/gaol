@@ -233,6 +233,11 @@ impl Filter {
                 filter.if_arg1_hasnt_set(!(O_RDONLY | O_CLOEXEC | O_NOCTTY | O_NONBLOCK) as u32,
                                          |filter| filter.allow_this_syscall())
             });
+            // Newer code seems to prefer openat.
+            filter.if_syscall_is(libc::SYS_openat as u32, |filter| {
+                filter.if_arg2_hasnt_set(!(O_RDONLY | O_CLOEXEC | O_NOCTTY | O_NONBLOCK) as u32,
+                                         |filter| filter.allow_this_syscall())
+            });
 
             // Only allow the `FIONREAD` or `FIOCLEX` `ioctl`s to be performed.
             filter.if_syscall_is(libc::SYS_ioctl as u32, |filter| {
@@ -363,6 +368,11 @@ impl Filter {
 
     fn if_arg1_hasnt_set<F>(&mut self, value: u32, then: F) where F: FnMut(&mut Filter) {
         self.program.push(EXAMINE_ARG_1);
+        self.if_k_hasnt_set(value, then)
+    }
+
+    fn if_arg2_hasnt_set<F>(&mut self, value: u32, then: F) where F: FnMut(&mut Filter) {
+        self.program.push(EXAMINE_ARG_2);
         self.if_k_hasnt_set(value, then)
     }
 

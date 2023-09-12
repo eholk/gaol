@@ -10,7 +10,8 @@ edition = "2021"
 
 [dependencies]
 libc = "0.2"
-log = "0.4"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 
 [dev-dependencies]
 color-eyre = "0.6.2"
@@ -41,4 +42,3 @@ harness = false
 name = "system-info-read"
 path = "tests/system-info-read.rs"
 harness = false
-

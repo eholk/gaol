@@ -10,6 +10,8 @@
 
 //! Sandbox profiles—lists of permitted operations.
 
+use tracing::debug;
+
 use crate::platform;
 
 use std::path::PathBuf;
@@ -129,6 +131,7 @@ impl Profile {
     /// to platform limitations.
     pub fn new(allowed_operations: Vec<Operation>) -> Result<Profile,()> {
         if allowed_operations.iter().all(|operation| {
+            debug!("{:?}: {:?}", operation, operation.support());
             match operation.support() {
                 OperationSupportLevel::NeverAllowed | OperationSupportLevel::CanBeAllowed => true,
                 OperationSupportLevel::CannotBeAllowedPrecisely |
@@ -172,4 +175,3 @@ pub trait OperationSupport {
     /// this platform.
     fn support(&self) -> OperationSupportLevel;
 }
-

@@ -1,9 +1,8 @@
 // Any copyright is dedicated to the Public Domain.
 // http://creativecommons.org/publicdomain/zero/1.0/
 
-extern crate gaol;
-extern crate libc;
-extern crate rand;
+use tracing::debug;
+use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 
 use gaol::profile::{Operation, PathPattern, Profile};
 use gaol::sandbox::{ChildSandbox, ChildSandboxMethods, Command, Sandbox, SandboxMethods};
@@ -35,6 +34,7 @@ fn prohibition_profile() -> Profile {
 }
 
 fn allowance_test() -> eyre::Result<()> {
+    debug!("allowance_test");
     let path = PathBuf::from(env::var("GAOL_TEMP_FILE")?);
     ChildSandbox::new(allowance_profile(&path))
         .activate()
@@ -51,6 +51,11 @@ fn prohibition_test() -> eyre::Result<()> {
 }
 
 pub fn main() -> eyre::Result<()> {
+    tracing_subscriber::registry()
+        .with(fmt::layer())
+        .with(EnvFilter::from_default_env())
+        .init();
+
     match env::args().skip(1).next() {
         Some(ref arg) if arg == "allowance_test" => return allowance_test(),
         Some(ref arg) if arg == "prohibition_test" => return prohibition_test(),
@@ -88,6 +93,7 @@ pub fn main() -> eyre::Result<()> {
                 .env("RUST_BACKTRACE", "1"),
         )?
         .wait()?;
+    debug!("child process exited with {allowance_status:?}");
     assert!(allowance_status.success());
 
     let prohibition_status = Sandbox::new(prohibition_profile())
