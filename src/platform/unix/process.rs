@@ -35,7 +35,8 @@ pub fn exec(command: &Command) -> io::Error {
                 str::from_utf8(value.to_bytes()).unwrap()
             );
             CString::new(entry).unwrap()
-        }).collect();
+        })
+        .collect();
     let mut env: Vec<_> = env.iter().map(|entry| entry.as_ptr()).collect();
     env.push(ptr::null());
 
@@ -76,12 +77,10 @@ impl Process {
             }
         }
 
-        unsafe {
-            if WIFEXITED(stat) {
-                Ok(ExitStatus::Code(WEXITSTATUS(stat) as i32))
-            } else {
-                Ok(ExitStatus::Signal(WTERMSIG(stat) as i32))
-            }
+        if WIFEXITED(stat) {
+            Ok(ExitStatus::Code(WEXITSTATUS(stat) as i32))
+        } else {
+            Ok(ExitStatus::Signal(WTERMSIG(stat) as i32))
         }
     }
 }

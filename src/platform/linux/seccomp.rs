@@ -14,7 +14,7 @@
 //! the weaker of the two approaches, because BPF is limited, but it's useful for reducing kernel
 //! attack surface area and implementing coarse-grained policies.
 
-#![allow(non_upper_case_globals, unused_imports)]
+#![allow(non_upper_case_globals, unused)]
 
 use crate::profile::{Operation, Profile};
 
@@ -398,6 +398,7 @@ impl Filter {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[allow(non_camel_case_types)]
 struct sock_filter {
     code: u16,
     jt: u8,
@@ -407,6 +408,7 @@ struct sock_filter {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
+#[allow(non_camel_case_types)]
 struct sock_fprog {
     len: c_ushort,
     filter: *const sock_filter,

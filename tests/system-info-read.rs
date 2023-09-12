@@ -4,14 +4,7 @@
 extern crate gaol;
 extern crate libc;
 
-use gaol::profile::{Operation, Profile};
-use gaol::sandbox::{ChildSandbox, ChildSandboxMethods, Command, Sandbox, SandboxMethods};
-use libc::{c_char, c_int, c_void, size_t};
-use std::env;
-use std::ffi::CString;
-use std::iter;
-use std::ptr;
-
+#[cfg(target_os="macos")]
 static SYSCTL_NAME: &'static str = "hw.ncpu";
 
 #[cfg(target_os="macos")]
@@ -29,10 +22,12 @@ fn look_at_sysctl() {
     }
 }
 
+#[cfg(target_os="macos")]
 fn allowance_profile() -> Profile {
     Profile::new(vec![Operation::SystemInfoRead]).unwrap()
 }
 
+#[cfg(target_os="macos")]
 fn prohibition_profile() -> Profile {
     Profile::new(Vec::new()).unwrap()
 }
@@ -87,4 +82,3 @@ extern {
                     newlen: size_t)
                     -> c_int;
 }
-

@@ -10,13 +10,12 @@
 
 //! Sandboxing on Linux via namespaces.
 
-use crate::platform::linux::seccomp;
 use crate::platform::unix::process::Process;
 use crate::platform::unix;
 use crate::profile::{Operation, PathPattern, Profile};
 use crate::sandbox::Command;
 
-use libc::{self, c_char, c_int, c_ulong, c_void, gid_t, pid_t, size_t, ssize_t, uid_t};
+use libc::{self, c_char, c_int, c_void, gid_t, pid_t, size_t, ssize_t, uid_t};
 use std::env;
 use std::ffi::{CString, OsStr, OsString};
 use std::fs::{self, File};

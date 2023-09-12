@@ -59,7 +59,7 @@ pub fn main() {
         let c_temp_path =
             CString::new(temp_path.as_os_str().to_str().unwrap().as_bytes()).unwrap();
         let mut new_temp_path = [0u8; PATH_MAX];
-        drop(realpath(c_temp_path.as_ptr(), new_temp_path.as_mut_ptr() as *mut c_char));
+        let _ = realpath(c_temp_path.as_ptr(), new_temp_path.as_mut_ptr() as *mut c_char);
         let pos = new_temp_path.iter().position(|&x| x == 0).unwrap();
         temp_path = PathBuf::from(OsStr::from_bytes(&new_temp_path[..pos]));
     }
@@ -98,4 +98,3 @@ pub fn main() {
 extern {
     fn realpath(file_name: *const c_char, resolved_name: *mut c_char) -> *mut c_char;
 }
-

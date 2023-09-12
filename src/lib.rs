@@ -8,11 +8,6 @@
 // option. This file may not be copied, modified, or distributed
 // except according to those terms.
 
-#[macro_use]
-extern crate log;
-
-extern crate libc;
-
 pub mod profile;
 pub mod sandbox;
 
@@ -35,4 +30,3 @@ pub mod platform {
     #[cfg(any(target_os="android", target_os="linux", target_os="macos", target_os="freebsd"))]
     pub mod unix;
 }
-
