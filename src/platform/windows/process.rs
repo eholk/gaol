@@ -3,11 +3,20 @@ use std::{
     process::{self, Child},
 };
 
-pub struct Process(pub(super) Child);
+use windows::Win32::System::Threading::PROCESS_INFORMATION;
+
+pub struct Process(pub(super) PROCESS_INFORMATION);
 
 impl Process {
     pub fn wait(&mut self) -> io::Result<ExitStatus> {
-        self.0.wait().map(|status| ExitStatus::Status(status))
+        unimplemented!()
+    }
+}
+
+impl Drop for Process {
+    fn drop(&mut self) {
+        // FIXME: close all the handles in PROCESS_INFORMATION
+        unimplemented!()
     }
 }
 
