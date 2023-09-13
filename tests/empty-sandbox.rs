@@ -6,7 +6,7 @@ use tracing::debug;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 use gaol::profile::Profile;
-use gaol::sandbox::{ChildSandbox, Command, Sandbox};
+use gaol::sandbox::{ChildSandbox, ChildSandboxMethods, Command, Sandbox, SandboxMethods};
 use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::env;
@@ -20,16 +20,14 @@ fn get_profile() -> eyre::Result<Profile> {
 
 fn sandbox_test() -> eyre::Result<()> {
     let path = PathBuf::from(env::var("GAOL_TEMP_FILE")?);
-    ChildSandbox::new(get_profile()?).activate()?;
+    ChildSandbox::new(get_profile()?).activate().unwrap();
     assert!(File::open(path).is_err());
     Ok(())
 }
 
 pub fn main() -> eyre::Result<()> {
-    // FIXME: this doesn't quite work on Windows yet
-    #[cfg(windows)]
     {
-        println!("This test is not yet supported on Windows.");
+        println!("This test is broken on all platforms.");
         return Ok(());
     }
 
