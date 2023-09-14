@@ -8,6 +8,7 @@ use std::{
 };
 
 use thiserror::Error;
+use tracing::debug;
 use widestring::U16String;
 use windows::{
     core::{PCWSTR, PWSTR},
@@ -17,8 +18,9 @@ use windows::{
         Security::{CreateRestrictedToken, DISABLE_MAX_PRIVILEGE, TOKEN_ALL_ACCESS, TOKEN_READ},
         System::Threading::{
             CreateProcessAsUserW, CreateProcessWithLogonW, CreateProcessWithTokenW,
-            GetCurrentProcess, OpenProcessToken, CREATE_PROCESS_LOGON_FLAGS,
-            CREATE_UNICODE_ENVIRONMENT, PROCESS_CREATION_FLAGS, PROCESS_INFORMATION,
+            GetCurrentProcess, GetStartupInfoW, OpenProcessToken, CREATE_NEW_CONSOLE,
+            CREATE_NEW_PROCESS_GROUP, CREATE_PROCESS_LOGON_FLAGS, CREATE_UNICODE_ENVIRONMENT,
+            NORMAL_PRIORITY_CLASS, PROCESS_CREATION_FLAGS, PROCESS_INFORMATION, STARTUPINFOW,
         },
     },
 };
@@ -86,7 +88,7 @@ impl Sandbox {
         let current_token = get_current_token()?;
         let child_token = create_restricted_token(current_token)?;
 
-        let proc = create_process_with_token(command, child_token)?;
+        let proc = create_process_with_token(command, current_token)?;
 
         Ok(process::Process(proc))
     }
@@ -137,7 +139,7 @@ fn create_process_with_token(
     ));
 
     // Generate the command line
-    let mut command_line = app_name.clone();
+    let mut command_line = app_name[..app_name.len() - 1].to_owned();
     for arg in command.args.iter() {
         // FIXME: we can look forward to all kinds of horror getting the
         // escaping here right.
@@ -156,20 +158,29 @@ fn create_process_with_token(
             v.to_str().map_err(|_| SandboxError::InvalidCommandLine)?,
         ));
     }
+    env.push_str("RUST_LOG=debug\0RUST_BACKTRACE=1\0");
     env.push_str("\0");
 
+    let mut startup_info = STARTUPINFOW::default();
+
+    debug!("launching child process");
+    debug!("command_line: {:?}", command_line);
+    debug!("env: {:?}", env);
+
     unsafe {
+        GetStartupInfoW(&mut startup_info);
+
         if !CreateProcessAsUserW(
-            token,
-            PCWSTR(app_name.as_ptr()),
+            HANDLE(0),           //token,
+            PCWSTR(ptr::null()), //PCWSTR(app_name.as_ptr()),
             PWSTR(command_line.as_mut_ptr()),
             None,
             None,
-            false,
+            true, // inherit handles so we can see stdout/stderr
             CREATE_UNICODE_ENVIRONMENT,
             Some(env.as_ptr() as _),
             PCWSTR(ptr::null()),
-            ptr::null_mut(),
+            &startup_info,
             &mut process_info,
         )
         .as_bool()

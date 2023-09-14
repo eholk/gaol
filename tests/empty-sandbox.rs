@@ -2,7 +2,7 @@
 //! works. We also try to perform an operation to make sure the sandbox is
 //! actually restricted.
 
-use tracing::debug;
+use tracing::{debug, trace_span};
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 use gaol::profile::Profile;
@@ -26,11 +26,6 @@ fn sandbox_test() -> eyre::Result<()> {
 }
 
 pub fn main() -> eyre::Result<()> {
-    {
-        println!("This test is broken on all platforms.");
-        return Ok(());
-    }
-
     tracing_subscriber::registry()
         .with(fmt::layer())
         .with(EnvFilter::from_default_env())
@@ -38,9 +33,13 @@ pub fn main() -> eyre::Result<()> {
 
     color_eyre::install()?;
 
+    let args = env::args().collect::<Vec<_>>();
+    println!("args: {:?}", args);
+
     match env::args().skip(1).next() {
         Some(ref arg) if arg == "child_process" => return sandbox_test(),
-        _ => {}
+        Some(ref arg) if arg == "parent_process" => (),
+        _ => panic!("unrecognized argument"),
     }
 
     let mut temp_path = env::temp_dir();
