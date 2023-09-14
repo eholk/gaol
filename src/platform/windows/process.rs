@@ -1,7 +1,4 @@
-use std::{
-    io,
-    process::{self, Child},
-};
+use std::io;
 
 use windows::Win32::{
     Foundation::{CloseHandle, WAIT_FAILED},

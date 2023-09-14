@@ -16,6 +16,7 @@ use crate::profile::Profile;
 use std::collections::HashMap;
 use std::convert::AsRef;
 use std::env;
+use std::error::Error;
 use std::ffi::{CString, OsStr};
 use std::io;
 
@@ -26,18 +27,22 @@ pub use crate::platform::{ChildSandbox, Sandbox};
 /// A new sandbox can be created with `Sandbox::new()`, which all platform-specific sandboxes
 /// implement.
 pub trait SandboxMethods {
+    type Error: Error;
+
     /// Returns this sandbox profile.
     fn profile(&self) -> &Profile;
 
     /// Spawns a child process eligible for sandboxing.
-    fn start(&self, command: &mut Command) -> io::Result<Process>;
+    fn start(&self, command: &mut Command) -> Result<Process, Self::Error>;
 }
 
 /// All platform-specific sandboxes in the child process implement this trait.
 pub trait ChildSandboxMethods {
+    type Error: Error;
+
     /// Activates the restrictions in this child process from here on out. Be sure to check the
     /// return value!
-    fn activate(&self) -> Result<(), ()>;
+    fn activate(&self) -> Result<(), Self::Error>;
 }
 
 fn cstring<T>(path: T) -> CString

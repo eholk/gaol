@@ -1,33 +1,27 @@
-//! Windows sandboxing support
+//! Windows sandbox support
 //!
 //!
 
-use std::{
-    ffi::{OsStr, OsString},
-    io, ptr,
-};
+use std::{io, ptr};
 
 use thiserror::Error;
 use tracing::debug;
 use widestring::U16String;
 use windows::{
     core::{PCWSTR, PWSTR},
-    w,
     Win32::{
         Foundation::{GetLastError, HANDLE, WIN32_ERROR},
-        Security::{CreateRestrictedToken, DISABLE_MAX_PRIVILEGE, TOKEN_ALL_ACCESS, TOKEN_READ},
+        Security::{CreateRestrictedToken, DISABLE_MAX_PRIVILEGE, TOKEN_ALL_ACCESS},
         System::Threading::{
-            CreateProcessAsUserW, CreateProcessWithLogonW, CreateProcessWithTokenW,
-            GetCurrentProcess, GetStartupInfoW, OpenProcessToken, CREATE_NEW_CONSOLE,
-            CREATE_NEW_PROCESS_GROUP, CREATE_PROCESS_LOGON_FLAGS, CREATE_UNICODE_ENVIRONMENT,
-            NORMAL_PRIORITY_CLASS, PROCESS_CREATION_FLAGS, PROCESS_INFORMATION, STARTUPINFOW,
+            CreateProcessAsUserW, GetCurrentProcess, GetStartupInfoW, OpenProcessToken,
+            CREATE_UNICODE_ENVIRONMENT, PROCESS_INFORMATION, STARTUPINFOW,
         },
     },
 };
 
 use crate::{
     profile::{self, OperationSupport, OperationSupportLevel, Profile},
-    sandbox::Command,
+    sandbox::{ChildSandboxMethods, Command, SandboxMethods},
 };
 
 pub mod process;
@@ -52,8 +46,12 @@ impl ChildSandbox {
     pub fn new(profile: Profile) -> ChildSandbox {
         ChildSandbox { profile }
     }
+}
 
-    pub fn activate(&self) -> Result<(), SandboxError> {
+impl ChildSandboxMethods for ChildSandbox {
+    type Error = SandboxError;
+
+    fn activate(&self) -> Result<(), SandboxError> {
         // FIXME: Everything is not OK
         Ok(())
     }
@@ -83,8 +81,16 @@ impl Sandbox {
     pub fn new(profile: Profile) -> Sandbox {
         Sandbox { profile }
     }
+}
 
-    pub fn start(&self, command: &mut Command) -> Result<process::Process, SandboxError> {
+impl SandboxMethods for Sandbox {
+    type Error = SandboxError;
+
+    fn profile(&self) -> &Profile {
+        &self.profile
+    }
+
+    fn start(&self, command: &mut Command) -> Result<process::Process, SandboxError> {
         let current_token = get_current_token()?;
         let child_token = create_restricted_token(current_token)?;
 

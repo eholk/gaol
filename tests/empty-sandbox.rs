@@ -2,7 +2,7 @@
 //! works. We also try to perform an operation to make sure the sandbox is
 //! actually restricted.
 
-use tracing::{debug, trace_span};
+use tracing::debug;
 use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 
 use gaol::profile::Profile;
