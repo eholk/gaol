@@ -10,7 +10,7 @@ use widestring::U16String;
 use windows::{
     core::{PCWSTR, PWSTR},
     Win32::{
-        Foundation::{GetLastError, HANDLE, WIN32_ERROR},
+        Foundation::{GetLastError, HANDLE, NTSTATUS, WIN32_ERROR},
         Security::{CreateRestrictedToken, DISABLE_MAX_PRIVILEGE, TOKEN_ALL_ACCESS},
         System::Threading::{
             CreateProcessAsUserW, GetCurrentProcess, GetStartupInfoW, OpenProcessToken,
@@ -24,6 +24,9 @@ use crate::{
     sandbox::{ChildSandboxMethods, Command, SandboxMethods},
 };
 
+use self::app_container::create_app_container_token;
+
+mod app_container;
 pub mod process;
 
 #[derive(Clone, Debug)]
@@ -71,6 +74,12 @@ pub enum SandboxError {
     /// Indicates that the module name was not a valid utf-8 string
     #[error("invalid module name")]
     InvalidCommandLine,
+
+    #[error("failed to create app container profile: {0:?}")]
+    AppContainerToken(NTSTATUS),
+
+    #[error("failed to get app container sid: {0:?}")]
+    AppContainerSid(WIN32_ERROR)
 }
 
 pub struct Sandbox {
@@ -93,8 +102,9 @@ impl SandboxMethods for Sandbox {
     fn start(&self, command: &mut Command) -> Result<process::Process, SandboxError> {
         let current_token = get_current_token()?;
         let child_token = create_restricted_token(current_token)?;
+        let child_token = create_app_container_token(child_token)?;
 
-        let proc = create_process_with_token(command, current_token)?;
+        let proc = create_process_with_token(command, child_token)?;
 
         Ok(process::Process(proc))
     }
@@ -177,7 +187,7 @@ fn create_process_with_token(
         GetStartupInfoW(&mut startup_info);
 
         if !CreateProcessAsUserW(
-            HANDLE(0),           //token,
+            token,
             PCWSTR(ptr::null()), //PCWSTR(app_name.as_ptr()),
             PWSTR(command_line.as_mut_ptr()),
             None,
@@ -195,4 +205,10 @@ fn create_process_with_token(
         }
     }
     Ok(process_info)
+}
+
+/// A safe wrapper around `GetLastError`, since this is commonly used and
+/// completely safe to call.
+fn get_last_error() -> WIN32_ERROR {
+    unsafe { GetLastError() }
 }

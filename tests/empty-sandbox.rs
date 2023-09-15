@@ -21,7 +21,9 @@ fn get_profile() -> eyre::Result<Profile> {
 fn sandbox_test() -> eyre::Result<()> {
     let path = PathBuf::from(env::var("GAOL_TEMP_FILE")?);
     ChildSandbox::new(get_profile()?).activate().unwrap();
-    assert!(File::open(path).is_err());
+    let result = File::open(path);
+    debug!("result: {:?}", result);
+    assert!(result.is_err());
     Ok(())
 }
 
@@ -38,8 +40,7 @@ pub fn main() -> eyre::Result<()> {
 
     match env::args().skip(1).next() {
         Some(ref arg) if arg == "child_process" => return sandbox_test(),
-        Some(ref arg) if arg == "parent_process" => (),
-        _ => panic!("unrecognized argument"),
+        _ => (),
     }
 
     let mut temp_path = env::temp_dir();

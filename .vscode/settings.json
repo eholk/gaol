@@ -2,6 +2,11 @@
     "cSpell.words": [
         "cstring",
         "gaoltest",
+        "HLOCAL",
+        "lowbox",
+        "ntdll",
+        "NTSTATUS",
+        "PCSTR",
         "PCWSTR",
         "PWSTR",
         "sandboxing",
